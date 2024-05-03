@@ -1,0 +1,5 @@
+# Release folder
+target
+# All dependencies installed via Glid
+/.project
+/bin

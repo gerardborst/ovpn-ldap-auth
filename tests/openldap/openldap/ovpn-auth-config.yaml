@@ -1,0 +1,16 @@
+ldapClient:
+  base: "dc=example,dc=org"
+  groupFilter: "(memberOf=%s)"
+  host: "localhost"
+  port: 1389
+  useSsl: false
+  useStartTls: false
+  vpnGroupFilter: "(&(uid=%s)(memberOf=cn=openvpn,ou=users,dc=example,dc=org))"
+  serverName: "localhost"
+  binddn: "cn=admin,dc=example,dc=org"
+  bindPassword: "123456"
+log:  
+  level: "debug"
+cn:
+  check: false
+  fail: false

@@ -1,0 +1,37 @@
+version: 1
+
+dn: ou=People,dc=example,dc=com
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: People
+
+dn: uid=client1,ou=People,dc=example,dc=com
+changetype: add
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: client1
+sn: client1
+uid: client1
+userPassword: bar
+
+dn: uid=foo,ou=People,dc=example,dc=com
+changetype: add
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: foo
+sn: foo
+uid: foo
+userPassword: bar
+
+dn: cn=group1,dc=example,dc=com
+changetype: add
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: group1
+uniqueMember: uid=client1,ou=People,dc=example,dc=com
+
