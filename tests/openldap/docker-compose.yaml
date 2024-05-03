@@ -19,11 +19,9 @@ services:
       LDAP_ENABLE_MEMBEROF: "yes"
       LDAP_ENABLE_DYNLIST: "yes"
       LDAP_DYNLIST_ATTRSETS: "memberOf"
-      #LDAP_USERS: user01,user02
-      #LDAP_PASSWORDS: password1,password2
-      LDAP_LOGLEVEL: 256
+      #LDAP_LOGLEVEL: 256
       LDAP_EXTRA_SCHEMAS: cosine,dyngroup,inetorgperson,nis
-      BITNAMI_DEBUG: "true"
+      #BITNAMI_DEBUG: "true"
     volumes:
     - ./schemas:/schemas
     - .:/ldifs

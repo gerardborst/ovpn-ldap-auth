@@ -1,37 +1,61 @@
-version: 1
+# extended LDIF
+#
+# LDAPv3
+# base <dc=example,dc=org> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
 
-dn: ou=People,dc=example,dc=com
-changetype: add
+# example.org
+dn: dc=example,dc=org
+objectClass: dcObject
+objectClass: organization
+dc: example
+o: example
+
+# users, example.org
+dn: ou=users,dc=example,dc=org
 objectClass: organizationalUnit
-objectClass: top
-ou: People
+ou: users
 
-dn: uid=client1,ou=People,dc=example,dc=com
-changetype: add
-objectClass: organizationalPerson
-objectClass: person
+# user01, users, example.org
+dn: cn=user01,ou=users,dc=example,dc=org
+cn: User1
+cn: user01
+sn: Bar1
 objectClass: inetOrgPerson
-objectClass: top
-cn: client1
-sn: client1
-uid: client1
-userPassword: bar
+objectClass: posixAccount
+objectClass: shadowAccount
+userPassword:: cGFzc3dvcmQx
+uid: user01
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/user01
 
-dn: uid=foo,ou=People,dc=example,dc=com
-changetype: add
-objectClass: organizationalPerson
-objectClass: person
+# user02, users, example.org
+dn: cn=user02,ou=users,dc=example,dc=org
+cn: User2
+cn: user02
+sn: Bar2
 objectClass: inetOrgPerson
-objectClass: top
-cn: foo
-sn: foo
-uid: foo
-userPassword: bar
+objectClass: posixAccount
+objectClass: shadowAccount
+userPassword:: cGFzc3dvcmQy
+uid: user02
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/user02
 
-dn: cn=group1,dc=example,dc=com
-changetype: add
-objectClass: groupOfUniqueNames
-objectClass: top
-cn: group1
-uniqueMember: uid=client1,ou=People,dc=example,dc=com
+# readers, users, example.org
+dn: cn=readers,ou=users,dc=example,dc=org
+cn: readers
+objectClass: groupOfNames
+member: cn=user01,ou=users,dc=example,dc=org
+member: cn=user02,ou=users,dc=example,dc=org
+
+# openvpn, users, example.org
+dn: cn=openvpn,ou=users,dc=example,dc=org
+cn: openvpn
+objectClass: groupOfNames
+member: cn=user01,ou=users,dc=example,dc=org
 

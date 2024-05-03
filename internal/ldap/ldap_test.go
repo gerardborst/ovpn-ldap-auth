@@ -15,7 +15,7 @@ var ctx context.Context
 func setup() {
 	ctx = context.Background()
 	var err error
-	compose, err = tc.NewDockerCompose("../../tests/openldap/openldap/docker-compose.yaml")
+	compose, err = tc.NewDockerCompose("../../tests/openldap/docker-compose.yaml")
 	if err != nil {
 		panic(err)
 	}

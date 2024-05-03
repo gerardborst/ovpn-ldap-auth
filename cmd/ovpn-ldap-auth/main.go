@@ -29,11 +29,11 @@ var username, authControlFile string
 var logger *slog.Logger
 
 func main() {
-	viper.SetConfigName("ovpn-auth-config")              // name of config file (without extension)
-	viper.SetConfigType("yaml")                          // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath(".")                             // optionally look for config in the working directory
-	viper.AddConfigPath("../../tests/openldap/openldap") // optionally look in the tests directory
-	viper.AddConfigPath("/etc/openvpn/auth/")            // path to look for the config file in
+	viper.SetConfigName("ovpn-auth-config")      // name of config file (without extension)
+	viper.SetConfigType("yaml")                  // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath(".")                     // optionally look for config in the working directory
+	viper.AddConfigPath("../../tests/openldap/") // optionally look in the tests directory
+	viper.AddConfigPath("/etc/openvpn/auth/")    // path to look for the config file in
 
 	viper.SetDefault("ldapClient.UseSSL", true)
 	viper.SetDefault("ldapClient.SkipTLS", false)
