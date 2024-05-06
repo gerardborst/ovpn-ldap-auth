@@ -16,10 +16,7 @@ all: build
 
 clean:
 	go clean
-	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi
 	rm -rf ./target || true
-
-release: clean linux
 
 # Installs our project: copies binaries
 install:
@@ -27,9 +24,11 @@ install:
 
 build:
 	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi
-	go build -o ${BINARY} ${LDFLAGS} cmd/ovpn-ldap-auth/*.go
+	go build -o ${BINARY} ${LDFLAGS} cmd/${BINARY}/*.go
 
-linux:
-	GOOS=linux GOARCH=amd64 go build -o ./target/linux_amd64/${BINARY} ${LDFLAGS} cmd/ovpn-ldap-auth/*.go
+linux: clean
+	GOOS=linux GOARCH=amd64 go build -o ./target/linux_amd64/${BINARY} ${LDFLAGS} cmd/${BINARY}/*.go
+	cd ./target/linux_amd64/ && tar -czvf ${BINARY}.linux-amd64.tar.gz ${BINARY} && \
+	sha256sum ${BINARY}.linux-amd64.tar.gz > sha256sum.txt
 
 .PHONY: build

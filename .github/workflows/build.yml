@@ -8,6 +8,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_call:
 
 jobs:
 
@@ -24,8 +25,19 @@ jobs:
     - name: Install dependencies
       run: go get ./...
 
+    - name: Test
+      run: go test -v ./...
+
     - name: Build
-      run: go build -v ./...
+      run: make linux
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ovpn-ldap-auth
+        path: |
+          ./target/linux_amd64/ovpn-ldap-auth.linux-amd64.tar.gz
+          ./target/linux_amd64/sha256sum.txt
+        if-no-files-found: error
 
     - name: Test
       run: go test -v ./...
