@@ -3,9 +3,9 @@ module github.com/gerardborst/ovpn-ldap-auth
 go 1.22.1
 
 require (
-	github.com/joho/godotenv v1.5.1
-	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/spf13/viper v1.18.2
+	github.com/stretchr/testify v1.9.0
+	github.com/testcontainers/testcontainers-go/modules/compose v0.30.0
 	gopkg.in/ldap.v2 v2.5.1
 )
 
@@ -134,16 +134,14 @@ require (
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.18.2 // indirect
-	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/testcontainers/testcontainers-go v0.30.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/compose v0.30.0 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
 	github.com/tilt-dev/fsnotify v1.4.8-0.20220602155310-fff9c274a375 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
