@@ -28,8 +28,7 @@ jobs:
       run: go test -v ./...
 
     - name: Build
-      run: 
-      - make linux
+      run: make linux
     
     - uses: actions/upload-artifact@v4
       with:
