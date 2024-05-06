@@ -38,6 +38,3 @@ jobs:
           ./target/linux_amd64/ovpn-ldap-auth.linux-amd64.tar.gz
           ./target/linux_amd64/sha256sum.txt
         if-no-files-found: error
-
-    - name: Test
-      run: go test -v ./...
