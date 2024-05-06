@@ -29,6 +29,7 @@ import (
 	"github.com/gerardborst/ovpn-ldap-auth/internal/cn"
 	"github.com/gerardborst/ovpn-ldap-auth/internal/ldap"
 	"github.com/gerardborst/ovpn-ldap-auth/internal/logging"
+	"github.com/gerardborst/ovpn-ldap-auth/internal/report"
 	"github.com/spf13/viper"
 )
 
@@ -45,9 +46,13 @@ type Configuration struct {
 
 var c Configuration
 
-var username, authControlFile string
+var username string
 
 var logger *slog.Logger
+
+var authControlFile io.Writer
+
+var reporter *report.Reporter
 
 func main() {
 	viper.SetConfigName("ovpn-auth-config")      // name of config file (without extension)
@@ -77,7 +82,7 @@ func main() {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 
-	logger, err = c.Log.NewLogger()
+	logger = logging.NewLogger(&c.Log)
 	if err != nil {
 		log.Fatalf("unable initialize logger, %v", err)
 	}
@@ -90,49 +95,25 @@ func main() {
 	username = viper.GetString("username")
 	password := viper.GetString("password")
 	commonName := viper.GetString("common_name")
-	authControlFile = viper.GetString("auth_control_file")
+	authControlFile, err = os.OpenFile(viper.GetString("auth_control_file"), os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		logger.Error("Open auth_control_file", "error", err)
+		os.Exit(1)
+	}
+
+	reporter = report.NewReporter(authControlFile)
 
 	logger.Info("ldap authentication", "version", VersionTag, "commit", CommitHash, "username", username)
 
 	logger.Debug("", "configuration", c)
 
-	// Check common name in clietn certificate
-	if c.CN.Check {
-		ok, err := c.CN.Equal(username, commonName)
-		if err != nil {
-			logger.Error(err.Error())
-		}
-		if !ok {
-			reportSuccess(ok)
-			return
-		}
+	// Check common name in client certificate
+	abort := c.CN.CheckCN(username, commonName)
+	if abort {
+		reporter.Report(false)
+		return
 	}
 	// Ldap Authenticate
-	ok, user, err := c.LdapClient.Authenticate(username, password)
-	if err != nil {
-		logger.Error("Authentication errored", "username", username, "error", err)
-		reportSuccess(false)
-	} else {
-		if !ok {
-			logger.Error("Authentication failed", "username", username, "error", err)
-			reportSuccess(false)
-		} else {
-			logger.Info("Authentication successful", "user", user)
-			reportSuccess(true)
-		}
-	}
-}
-
-func reportSuccess(authSuccess bool) {
-	if authSuccess {
-		err := os.WriteFile(authControlFile, []byte("1"), 0644)
-		if err != nil {
-			logger.Error("WriteFile errored for user %s, error: %v", username, err)
-		}
-	}
-	err := os.WriteFile(authControlFile, []byte("0"), 0644)
-	if err != nil {
-		logger.Error("WriteFile errored for user %s, error: %v", username, err)
-	}
-
+	authenticated := c.LdapClient.Authenticate(username, password)
+	reporter.Report(authenticated)
 }

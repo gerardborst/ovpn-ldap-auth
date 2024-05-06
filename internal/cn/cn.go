@@ -21,8 +21,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cn
 
 import (
-	"fmt"
+	"log/slog"
 	"strings"
+
+	"github.com/gerardborst/ovpn-ldap-auth/internal/logging"
 )
 
 type CNConfiguration struct {
@@ -30,14 +32,21 @@ type CNConfiguration struct {
 	Fail  bool
 }
 
-func (cn *CNConfiguration) Equal(username, commonName string) (bool, error) {
-	if !strings.EqualFold(username, commonName) {
-		err := fmt.Errorf("user [%s], not equal to common name [%s] in client certificate", username, commonName)
-		if cn.Fail {
-			return false, err
-		} else {
-			return true, err
+var logger *slog.Logger
+
+func (cn *CNConfiguration) CheckCN(username, commonName string) (abort bool) {
+	logger = logging.GetLogger()
+	abort = false
+	if cn.Check {
+		if !strings.EqualFold(username, commonName) {
+			if cn.Fail {
+				logger.Error("username not equal to common name in client certificate", "username", username, "common_name", commonName)
+				abort = true
+				return
+			} else {
+				logger.Warn("username not equal to common name in client certificate", "username", username, "common_name", commonName)
+			}
 		}
 	}
-	return true, nil
+	return
 }

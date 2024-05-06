@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package logging
 
 import (
+	"log"
 	"log/slog"
 	"os"
 )
@@ -33,8 +34,11 @@ type LogConfiguration struct {
 
 var logger *slog.Logger
 
-func (lc *LogConfiguration) NewLogger() (*slog.Logger, error) {
+func NewLogger(lc *LogConfiguration) *slog.Logger {
 	if logger == nil {
+		if lc == nil {
+			log.Fatal("log configuration is nil")
+		}
 
 		var level slog.Level
 
@@ -55,13 +59,20 @@ func (lc *LogConfiguration) NewLogger() (*slog.Logger, error) {
 		if lc.LogToFile {
 			f, err := os.OpenFile(lc.File, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 			if err != nil {
-				return nil, err
+				log.Fatalf("unable to initialize logger, %v", err)
 			}
 			logger = slog.New(slog.NewTextHandler(f, opts))
 		} else {
 			logger = slog.New(slog.NewTextHandler(os.Stdout, opts))
 		}
 	}
-	return logger, nil
+	return logger
 
+}
+
+func GetLogger() *slog.Logger {
+	if logger == nil {
+		log.Fatal("log configuration is nil")
+	}
+	return logger
 }

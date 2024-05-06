@@ -38,54 +38,54 @@ Without a tag on the current commit the version will be beta.
 
 ### Configuration
 
-Create a file `/etc/openvpn/auth/ldap-auth.conf` and copy-paste the following
+Create a file `/etc/openvpn/auth/ovpn-auth-config.yaml` and copy-paste the following
 
-```
-LDAP_BASE="OU=Accounts,dc=eu,dc=example,dc=com"
-LDAP_BINDDN="CN=OpenVPN,DC=example,DC=com"
-LDAP_BINDPASSWORD="SECRET"
-LDAP_GROUPFILTER="(memberUid=%s)"
-LDAP_HOST="ldaps.example.com"
-LDAP_PORT=636
-LDAP_USERFILTER="(CN=%s)"
-LDAP_SERVERNAME="ldaps.example.com"
-```
-
-#### Optional parameters
-
-```
-LDAP_USESSL="true"
-LDAP_SKIPTLS="false"
-LDAP_LOGLEVEL="info"
-LDAP_LOGTOFILE="false"
-LDAP_LOGFILE="/var/log/openvpn/auth/ldap.log"
-LDAP_CHECKCN="true"
-LDAP_CHECKCNFAIL="true"
+```yaml
+ldapClient:
+  base: "dc=example,dc=org"
+  groupFilter: "(memberOf=%s)"
+  host: "ldaps.example.org"
+  port: 636
+  useSsl: true
+  useStartTls: true
+  vpnGroupFilter: "(&(uid=%s)(memberOf=cn=openvpn,ou=users,dc=example,dc=org))"
+  serverName: "ldaps.example.org"
+  binddn: "cn=admin,dc=example,dc=org"
+  bindPassword: "123456"
+log:  
+  level: "info"
+  logToFile: true
+  logFile: "/var/log/openvpn/auth/ldap.log"
+cn:
+  check: true
+  fail: true
 ```
 
-If you don't want to use tls set `LDAP_USESSL` to false and `LDAP_SKIPTLS` to true. And change the port to the non-tls port.
+If you don't want to use tls set `ldapClient.useSsl` to false and if the ldap server doesn´t support it `ldapClient.useStartTls` also to false. And change the port to the non-tls port.
 
-Logging to file can be enabled by setting `LDAP_LOGTOFILE` to true. Optionally the log file path can be changed
-with a valid path in `LDAP_LOGFILE`. **This file should be writable by de user to which the openvpn server drops privileges.**
-Set `LDAP_CHECKCN` to true to check if the `CN` is equal to the `username`.
+Logging to file can be enabled by setting `log.logToFile` to true. Optionally the log file path can be changed
+with a valid path in `log.logFile`. **This file should be writable by de user to which the openvpn server drops privileges.**
+Set `cn.check` to true to check if the `CN` is equal to the `username`.
 
-If `LDAP_CHECKCNFAIL` is set to true and the `CN` is not equal to the `username` the authentication is rejected.
+If `cn.fail` is set to true and the `CN` is not equal to the `username` the authentication is rejected.
 With set to false only a message is logged.
 
 ### Run
 
-The `ldap-auth` process extracts the `username`, `password` and `common_name` from the environment.
+The `ovpn-ldap-auth` process extracts the `username`, `password` and `common_name` from the environment.
 
 ```sh
-$ export username="user@example.com"
-$ export password="SECRET123"
-$ export common_name="user@example.com"
+export username="user01"
+export password="password1"
+export common_name="user01"
+export auth_control_file="./.vscode/auth_control_file.txt"
 ```
 
 Now start the authentication flow
 
 ```
-$ go run cmd/ovpn-ldap-auth
+docker-compose -f ./tests/openldap/docker-compose.yaml up -d
+go run ./cmd/ovpn-ldap-auth
 
 ```
 

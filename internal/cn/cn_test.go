@@ -21,29 +21,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cn
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gerardborst/ovpn-ldap-auth/internal/logging"
 )
 
-func TestWithFail(t *testing.T) {
-	cn := &CNConfiguration{
-		Fail: true,
-	}
-	ok, err := cn.Equal("User", "user")
-	assert.True(t, ok)
-	assert.Nil(t, err)
+func TestReport(t *testing.T) {
 
-	ok, err = cn.Equal("User", "otherUser")
-	assert.False(t, ok)
-	assert.Equal(t, "user [User], not equal to common name [otherUser] in client certificate", err.Error())
-}
+	logger = logging.NewLogger(&logging.LogConfiguration{LogToFile: false})
 
-func TestWithOnlyWarn(t *testing.T) {
-	cn := &CNConfiguration{
-		Fail: false,
+	var cn *CNConfiguration
+	var tests = []struct {
+		check bool
+		fail  bool
+		user  string
+		cn    string
+		abort bool
+	}{
+		{false, false, "user", "user", false},
+		{false, true, "user", "user", false},
+		{true, false, "user", "user", false},
+		{true, false, "user", "otherUser", false},
+		{true, true, "user", "user", false},
+		{true, true, "user", "User", false},
+		{true, true, "user", "otherUser", true},
 	}
-	ok, err := cn.Equal("User", "otherUser")
-	assert.True(t, ok)
-	assert.Equal(t, "user [User], not equal to common name [otherUser] in client certificate", err.Error())
+	for _, test := range tests {
+		cn = &CNConfiguration{
+			Check: test.check,
+			Fail:  test.fail,
+		}
+		descr := fmt.Sprintf("CheckCN(%v, %v) CNConfiguration{Check: %v, Fail:  %v}",
+			test.user, test.cn, cn.Check, cn.Fail)
+		abort := cn.CheckCN(test.user, test.cn)
+
+		if test.abort != abort {
+			t.Errorf("%s abort = %v, want %v", descr, abort, test.abort)
+		}
+	}
 }

@@ -88,22 +88,21 @@ func (lc *LDAPClient) connect() (*ldap.Conn, error) {
 }
 
 // Authenticate authenticates the user against the ldap backend.
-func (lc *LDAPClient) Authenticate(username, password string) (bool, map[string]string, error) {
-	var err error
+func (lc *LDAPClient) Authenticate(username, password string) (authenticated bool) {
+	authenticated = false
 	// logger is already created with config in main
-	lgc := logging.LogConfiguration{}
-	logger, err = lgc.NewLogger()
-	if err != nil {
-		log.Fatalf("unable to initialize logger, %v", err)
-	}
+	logger = logging.GetLogger()
+
 	//  https://github.com/go-ldap/ldap/issues/93
 	if len(password) == 0 {
-		return false, nil, fmt.Errorf("zero length password not allowed, user [%v]", username)
+		logger.Error("zero length password not allowed", "username", username)
+		return
 	}
 
 	conn, err := lc.connect()
 	if err != nil {
-		return false, nil, err
+		logger.Error("ldap connect error", "error", err)
+		return
 	}
 	defer conn.Close()
 
@@ -112,7 +111,8 @@ func (lc *LDAPClient) Authenticate(username, password string) (bool, map[string]
 		logger.Debug("Create connection with bind username / password")
 		err := conn.Bind(lc.BindDN, lc.BindPassword)
 		if err != nil {
-			return false, nil, err
+			logger.Error("bind error", "error", err)
+			return
 		}
 		logger.Debug("Connection with bind account successful")
 	}
@@ -131,15 +131,18 @@ func (lc *LDAPClient) Authenticate(username, password string) (bool, map[string]
 
 	sr, err := conn.Search(searchRequest)
 	if err != nil {
-		return false, nil, err
+		logger.Error("ldap search error", "error", err)
+		return
 	}
 
 	if len(sr.Entries) < 1 {
-		return false, nil, fmt.Errorf("user [%s] does not exist, or is not a member of the OpenVPN group", username)
+		logger.Error("user does not exist, or is not a member of the OpenVPN group", "user", username)
+		return
 	}
 
 	if len(sr.Entries) > 1 {
-		return false, nil, fmt.Errorf("too many entries returned: %v", len(sr.Entries))
+		logger.Error("too many entries returned", "#entreis", len(sr.Entries))
+		return
 	}
 
 	userDN := sr.Entries[0].DN
@@ -153,8 +156,9 @@ func (lc *LDAPClient) Authenticate(username, password string) (bool, map[string]
 	// Bind as the user to verify their password
 	err = conn.Bind(userDN, password)
 	if err != nil {
-		return false, user, err
+		logger.Error("authentication error", "error", err)
+		return
 	}
-
-	return true, user, nil
+	authenticated = true
+	return
 }

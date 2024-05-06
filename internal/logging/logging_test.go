@@ -32,11 +32,9 @@ func TestToStdOut(t *testing.T) {
 	c := logging.LogConfiguration{
 		LogToFile: false,
 	}
-	logger1, err := c.NewLogger()
-	assert.Nil(t, err)
+	logger1 := logging.NewLogger(&c)
 
-	logger2, err := c.NewLogger()
-	assert.Nil(t, err)
+	logger2 := logging.GetLogger()
 
 	fmt.Printf("logger1 [%v] logger2 [%v]", logger1, logger2)
 

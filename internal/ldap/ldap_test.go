@@ -22,10 +22,11 @@ package ldap
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gerardborst/ovpn-ldap-auth/internal/logging"
 	tc "github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
@@ -33,6 +34,9 @@ var compose tc.ComposeStack
 var ctx context.Context
 
 func setup() {
+
+	logger = logging.NewLogger(&logging.LogConfiguration{LogToFile: false})
+
 	ctx = context.Background()
 	var err error
 	compose, err = tc.NewDockerCompose("../../tests/openldap/docker-compose.yaml")
@@ -73,24 +77,23 @@ var c1 = &LDAPClient{
 	BindPassword:   "123456",
 }
 
-func TestWithOutTLS(t *testing.T) {
-	res, users, err := c1.Authenticate("user01", "password1")
-	assert.Nil(t, err)
-	assert.True(t, res, "Authentication should be succesfull")
-	assert.Equal(t, map[string]string{}, users)
-
-	res, users, err = c1.Authenticate("user01", "zomaar")
-	assert.Equal(t, "LDAP Result Code 49 \"Invalid Credentials\": ", err.Error())
-	assert.False(t, res)
-	assert.Equal(t, map[string]string{}, users)
-
-	res, users, err = c1.Authenticate("user01", "")
-	assert.Equal(t, "zero length password not allowed, user [user01]", err.Error())
-	assert.False(t, res)
-	assert.Equal(t, map[string]string(nil), users)
-
-	res, users, err = c1.Authenticate("user02", "password2")
-	assert.Equal(t, "user [user02] does not exist, or is not a member of the OpenVPN group", err.Error())
-	assert.False(t, res, "Authentication should be not succesfull")
-	assert.Nil(t, users, "users should be nil")
+func TestLdap(t *testing.T) {
+	var tests = []struct {
+		username string
+		password string
+		want     bool
+	}{
+		{"user01", "password1", true},  // success
+		{"user01", "wrong", false},     // wrong password
+		{"user01", "", false},          // empty password
+		{"user02", "password2", false}, // not in group
+	}
+	for _, test := range tests {
+		descr := fmt.Sprintf("Authenticate(%v, %v)",
+			test.username, test.password)
+		res := c1.Authenticate(test.username, test.password)
+		if res != test.want {
+			t.Errorf("%s = %v, want %v", descr, res, test.want)
+		}
+	}
 }
