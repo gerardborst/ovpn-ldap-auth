@@ -35,7 +35,7 @@ import (
 
 var (
 	CommitHash  string
-	VersionTag  = "DEVELOPMENT"
+	VersionTag  string
 	BuildTime   string
 	showVersion = flag.Bool("v", false, "show version information")
 )

@@ -1,12 +1,16 @@
 BINARY=ovpn-ldap-auth
-$(eval VERSION_TAG = $(shell git describe 2>/dev/null | cut -f 1 -d '-' 2>/dev/null))
+GIT_COMMIT=$(shell git rev-parse HEAD)
+HAS_NO_TAG=$(shell git describe --contains ${GIT_COMMIT} || true)
+ifneq ($(strip ${HAS_NO_TAG}),)
+VERSION_TAG=$(shell git describe --contains ${GIT_COMMIT})
+endif
 
 # If no git tag is set, fallback to 'DEVELOPMENT'
 ifeq ($(strip ${VERSION_TAG}),)
 VERSION_TAG := "DEVELOPMENT"
 endif
 
-COMMIT_HASH=`git rev-parse --short=8 HEAD 2>/dev/null`
+COMMIT_HASH=$(git rev-parse --short=8 HEAD 2>/dev/null)
 LDFLAGS=-ldflags "-s -w \
 	-X main.CommitHash=${COMMIT_HASH} \
 	-X main.BuildTime=`date --iso-8601=seconds` \
