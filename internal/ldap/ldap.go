@@ -101,14 +101,14 @@ func (lc *LDAPClient) Authenticate(username, password string) (authenticated boo
 
 	conn, err := lc.connect()
 	if err != nil {
-		logger.Error("ldap connect error", "error", err)
+		logger.Error("ldap connect error", "username", username, "error", err)
 		return
 	}
 	defer conn.Close()
 
 	// First bind with a read only user
 	if lc.BindDN != "" && lc.BindPassword != "" {
-		logger.Debug("Create connection with bind username / password")
+		logger.Debug("Create connection with bind username / password", "username", username)
 		err := conn.Bind(lc.BindDN, lc.BindPassword)
 		if err != nil {
 			logger.Error("bind error", "error", err)
@@ -127,26 +127,26 @@ func (lc *LDAPClient) Authenticate(username, password string) (authenticated boo
 		nil,
 	)
 
-	logger.Debug("", "searchRequest", searchRequest.Filter)
+	logger.Debug("search user in ldap", "searchRequest", searchRequest.Filter)
 
 	sr, err := conn.Search(searchRequest)
 	if err != nil {
-		logger.Error("ldap search error", "error", err)
+		logger.Error("ldap search error", "username", username, "error", err)
 		return
 	}
 
 	if len(sr.Entries) < 1 {
-		logger.Error("user does not exist, or is not a member of the OpenVPN group", "user", username)
+		logger.Error("user does not exist, or is not a member of the OpenVPN group", "username", username)
 		return
 	}
 
 	if len(sr.Entries) > 1 {
-		logger.Error("too many entries returned", "#entreis", len(sr.Entries))
+		logger.Error("too many entries returned", "username", username, "#entreis", len(sr.Entries))
 		return
 	}
 
 	userDN := sr.Entries[0].DN
-	logger.Debug("", "userDN", userDN)
+	logger.Debug("searched user", "userDN", userDN)
 
 	user := map[string]string{}
 	for _, attr := range lc.Attributes {
@@ -156,9 +156,10 @@ func (lc *LDAPClient) Authenticate(username, password string) (authenticated boo
 	// Bind as the user to verify their password
 	err = conn.Bind(userDN, password)
 	if err != nil {
-		logger.Error("authentication error", "error", err)
+		logger.Error("authentication error", "username", username, "error", err)
 		return
 	}
 	authenticated = true
+	logger.Info("Authentication successful", "username", username)
 	return
 }

@@ -13,8 +13,8 @@
             "showLog": true,
             "env": {
                 "username": "user01",
-                "password": "password1", 
-                "common_name": "client1@example.com", 
+                "password": "password", 
+                "common_name": "user01", 
                 "auth_control_file": "${workspaceRoot}/.vscode/auth_control_file.txt"
             },
             

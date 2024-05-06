@@ -7,12 +7,9 @@ VERSION_TAG := "DEVELOPMENT"
 endif
 
 COMMIT_HASH=`git rev-parse --short=8 HEAD 2>/dev/null`
-# LDFLAGS=-ldflags "-s -w \
-# 	-X src/git.gerardborst-ovpn.nl/ldap-auth/cmd/ldap-auth/main.CommitHash=${COMMIT_HASH} \
-# 	-X src/git.gerardborst-ovpn.nl/ldap-auth/cmd/ldap-auth/main.VersionTag=${VERSION_TAG}"
 LDFLAGS=-ldflags "-s -w \
 	-X main.CommitHash=${COMMIT_HASH} \
-	-X main.BuildTime=${BUILD_TIME} \
+	-X main.BuildTime=`date --iso-8601=seconds` \
 	-X main.VersionTag=${VERSION_TAG}"
 
 all: build

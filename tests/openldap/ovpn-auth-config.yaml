@@ -12,5 +12,5 @@ ldapClient:
 log:  
   level: "debug"
 cn:
-  check: false
-  fail: false
+  check: true
+  fail: true

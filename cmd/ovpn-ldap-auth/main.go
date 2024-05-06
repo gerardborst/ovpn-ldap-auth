@@ -21,9 +21,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
-	"io"
+	"flag"
+	"fmt"
 	"log"
-	"log/slog"
 	"os"
 
 	"github.com/gerardborst/ovpn-ldap-auth/internal/cn"
@@ -34,8 +34,10 @@ import (
 )
 
 var (
-	CommitHash string
-	VersionTag string
+	CommitHash  string
+	VersionTag  = "DEVELOPMENT"
+	BuildTime   string
+	showVersion = flag.Bool("v", false, "show version information")
 )
 
 type Configuration struct {
@@ -44,17 +46,12 @@ type Configuration struct {
 	CN         cn.CNConfiguration
 }
 
-var c Configuration
-
-var username string
-
-var logger *slog.Logger
-
-var authControlFile io.Writer
-
-var reporter *report.Reporter
-
 func main() {
+	flag.Parse()
+	if *showVersion {
+		fmt.Printf("ovpn-ldap-auth version: [%s] commit: [%s] build time: [%s]\n", VersionTag, CommitHash, BuildTime)
+		os.Exit(0)
+	}
 	viper.SetConfigName("ovpn-auth-config")      // name of config file (without extension)
 	viper.SetConfigType("yaml")                  // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath(".")                     // optionally look for config in the working directory
@@ -77,12 +74,14 @@ func main() {
 		log.Fatalf("fatal error reading config file: %v", err)
 	}
 
+	var c Configuration
+
 	err = viper.Unmarshal(&c)
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 
-	logger = logging.NewLogger(&c.Log)
+	logger := logging.NewLogger(&c.Log)
 	if err != nil {
 		log.Fatalf("unable initialize logger, %v", err)
 	}
@@ -92,18 +91,16 @@ func main() {
 	viper.BindEnv("common_name", "common_name")
 	viper.BindEnv("auth_control_file", "auth_control_file")
 
-	username = viper.GetString("username")
+	username := viper.GetString("username")
 	password := viper.GetString("password")
 	commonName := viper.GetString("common_name")
-	authControlFile, err = os.OpenFile(viper.GetString("auth_control_file"), os.O_CREATE|os.O_WRONLY, 0666)
+	authControlFile, err := os.OpenFile(viper.GetString("auth_control_file"), os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		logger.Error("Open auth_control_file", "error", err)
 		os.Exit(1)
 	}
 
-	reporter = report.NewReporter(authControlFile)
-
-	logger.Info("ldap authentication", "version", VersionTag, "commit", CommitHash, "username", username)
+	reporter := report.NewReporter(authControlFile)
 
 	logger.Debug("", "configuration", c)
 
@@ -111,9 +108,13 @@ func main() {
 	abort := c.CN.CheckCN(username, commonName)
 	if abort {
 		reporter.Report(false)
+		logger.Error("Authentication not successful", "username", username)
 		return
 	}
 	// Ldap Authenticate
 	authenticated := c.LdapClient.Authenticate(username, password)
 	reporter.Report(authenticated)
+	if !authenticated {
+		logger.Error("Authentication not successful", "username", username)
+	}
 }
