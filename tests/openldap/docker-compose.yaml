@@ -1,4 +1,3 @@
-version: '3'
 services:
   openldap:
     image: bitnami/openldap
@@ -6,8 +5,8 @@ services:
     healthcheck:
       test: ldapsearch -x -H ldap://localhost:1389 -b dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w 123456
       interval: 5s
-      timeout: 30s
-      retries: 5
+      timeout: 120s
+      retries: 20
       start_period: 5s
     ports:
     - 1389:1389
