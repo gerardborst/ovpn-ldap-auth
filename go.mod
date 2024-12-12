@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go/modules/compose v0.34.0
 	gopkg.in/ldap.v2 v2.5.1
 )
