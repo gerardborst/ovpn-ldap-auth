@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/testcontainers/testcontainers-go/modules/compose v0.38.0
 	gopkg.in/ldap.v2 v2.5.1
 )
